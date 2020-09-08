@@ -1,10 +1,6 @@
 # Float-to-Tsetlin
 Trying to pass floating variables to the Tsetlin Machine, based on an assumption that the tsetlin machine can average an input.
 
-To be tested.
-
-Best result so far:
-87.8 % average accuracy over the last 100 epochs, on CIFAR10 color images of the automobile - cat pair. It used CTM with clauses = 4000, T = 75, s = 10.0, mask = (32, 32)
 
 Binarization technique that uses the value of each input as a parameter that defines an unfair coin flip as its input, for each epoch.
 
@@ -21,3 +17,7 @@ With multiple epochs, the average value for an input will approach it's value, i
 Video example of this method with baboon.png :  https://youtu.be/t5Rt4CBOeDc
 
 
+To be tested.
+
+Best result so far:
+87.8 % average accuracy over the last 100 epochs, on CIFAR10 color images of the automobile - cat pair. It used CTM with clauses = 4000, T = 75, s = 10.0, mask = (32, 32)
