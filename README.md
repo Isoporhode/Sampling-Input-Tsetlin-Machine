@@ -2,7 +2,7 @@
 
 A Binarization technique that uses the value of each input as a parameter that defines an unfair coin flip as its input, for each epoch.
 
-Example:
+### Example:
 For a grayscale image, each pixel gray value works as an unfair coin flip, based in the range of values a pixel can have.
 Pseudocode for how this works for one pixel:
 ```
@@ -12,8 +12,12 @@ def coinflip_pixel(pixel):
 ```
 With multiple epochs, the average value for an input will approach it's value, in the the normalized input space. This average can then again be mapped to it's original input space.
 
-Video example of this method with baboon.png :  https://youtu.be/t5Rt4CBOeDc
+### Video example of this method with baboon.png :  
+https://youtu.be/t5Rt4CBOeDc
 
+### How the implementation with Tstetlin machine looks like
+
+![FTTs](https://user-images.githubusercontent.com/69984770/91666424-f0c01600-eafc-11ea-8bbd-3435b74ba864.png)
 
 To be tested.
 
