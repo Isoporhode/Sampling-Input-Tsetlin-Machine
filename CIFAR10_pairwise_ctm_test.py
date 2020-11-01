@@ -100,13 +100,13 @@ def generate_datasets(grayscale_flag):
 #
 '''
 
-def ctm(clauses, T, s, mask, x_train, y_train, x_val, y_val):
+def ctm(clauses, T, s, mask, x_train, y_train, x_test, y_test):
     # find max and min values for the train and validation data
     x_train_min = np.amin(x_train)
     x_train_max = np.amax(x_train)
-    x_val_min = np.amin(x_val)
-    x_val_max = np.amax(x_val)
-    print(x_train_min, x_train_max, x_val_min, x_val_max)
+    x_test_min = np.amin(x_test)
+    x_test_max = np.amax(x_test)
+    print(x_train_min, x_train_max, x_test_min, x_test_max)
     tm = MultiClassConvolutionalTsetlinMachine2D(clauses, T, s, (mask, mask))
     log = Logger("CIFAR_random_samling_test", x_train, "CTM", clauses, T, s, (mask, mask))
 
@@ -116,22 +116,22 @@ def ctm(clauses, T, s, mask, x_train, y_train, x_val, y_val):
         start = time()
         # Generate matrix with size of the image array, with random values ranging from 0 to 255 
         random_train_matrix = np.random.randint(x_train_min, x_train_max, size=(x_train.shape))
-        random_test_matrix = np.random.randint(x_val_min, x_val_max, size=(x_val.shape))
+        random_test_matrix = np.random.randint(x_test_min, x_test_max, size=(x_test.shape))
         # Returns 
         floaty_train_images = np.greater(random_train_matrix, x_train)
-        floaty_test_images = np.greater(random_test_matrix, x_val)
+        floaty_test_images = np.greater(random_test_matrix, x_test)
         
         tm.fit(floaty_train_images, y_train, epochs=1, incremental=True)
         stop = time()
         
         pred = tm.predict(floaty_test_images)
-        conf_matrix = confusion_matrix(np.asarray(y_val), pred)
-        print('sum predict:', sum(pred), 'sum validation:', sum(y_val))
-        accuracy = 100*(pred == np.asarray(y_val)).mean()
+        conf_matrix = confusion_matrix(np.asarray(y_test), pred)
+        print('sum predict:', sum(pred), 'sum validation:', sum(y_test))
+        accuracy = 100*(pred == np.asarray(y_test)).mean()
         print("#%d Accuracy: %.2f%% (%.2fs)" % (i+1, accuracy, stop-start))
         print('Confusion matrix:')
         print(conf_matrix)
-        log.add_epoch(np.asarray(y_val), pred)
+        log.add_epoch(np.asarray(y_test), pred)
         log.save_log()
     print('done')
 
