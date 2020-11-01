@@ -109,6 +109,7 @@ def ctm(clauses, T, s, mask, x_train, y_train, x_test, y_test):
     print(x_train_min, x_train_max, x_test_min, x_test_max)
     tm = MultiClassConvolutionalTsetlinMachine2D(clauses, T, s, (mask, mask))
     log = Logger("CIFAR_random_samling_test", x_train, "CTM", clauses, T, s, (mask, mask))
+    max_acc = 0
 
     print('predicting 400 epochs')
     for i in range(400):
@@ -117,21 +118,33 @@ def ctm(clauses, T, s, mask, x_train, y_train, x_test, y_test):
         # Generate matrix with size of the image array, with random values ranging from 0 to 255 
         random_train_matrix = np.random.randint(x_train_min, x_train_max, size=(x_train.shape))
         random_test_matrix = np.random.randint(x_test_min, x_test_max, size=(x_test.shape))
-        # Returns 
+
+        # Sampeled images
         floaty_train_images = np.greater(random_train_matrix, x_train)
         floaty_test_images = np.greater(random_test_matrix, x_test)
         
+        # Fit
         tm.fit(floaty_train_images, y_train, epochs=1, incremental=True)
         stop = time()
+
+        # Predict
+        pred_test = tm.predict(floaty_test_images)
+        pred_train = tm.predict(floaty_test_images)
+
         
-        pred = tm.predict(floaty_test_images)
-        conf_matrix = confusion_matrix(np.asarray(y_test), pred)
-        print('sum predict:', sum(pred), 'sum validation:', sum(y_test))
-        accuracy = 100*(pred == np.asarray(y_test)).mean()
-        print("#%d Accuracy: %.2f%% (%.2fs)" % (i+1, accuracy, stop-start))
+        
+        # Get some nice logging in terminal
+        accuracy_test = 100*(pred_test == np.asarray(y_test)).mean()
+        if max_acc < accuracy_test:
+            max_acc = accuracy_test
+        conf_matrix_test = confusion_matrix(np.asarray(y_test), pred_test)
+        # print('sum predict:', sum(pred_test), 'sum validation:', sum(y_test))
+        print("#%d Accuracy on training data: %.2f%% (%.2fs), best accuracy on training data: %.2f%% " % (i+1, accuracy_test, stop-start, max))
         print('Confusion matrix:')
-        print(conf_matrix)
-        log.add_epoch(np.asarray(y_test), pred)
+        print(conf_matrix_test)
+
+        # Save to logfile
+        log.add_epoch(np.asarray(y_test), pred_test, np.asarray(y_train), pred_train)
         log.save_log()
     print('done')
 
