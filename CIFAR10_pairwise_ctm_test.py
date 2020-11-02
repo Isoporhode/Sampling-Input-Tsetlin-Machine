@@ -32,13 +32,7 @@ cifar_labels= {
 }
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--clauses', type=int, default=4000)
-parser.add_argument('-T', type=int, default=75)
-parser.add_argument('-s', type=float, default=10.0)
-parser.add_argument('--mask', type=int, default=10)
-parser.add_argument('--grayscale', type=bool, default=False)
-args = parser.parse_args()
+
 
 def extract_images_from_label(image_array, label_array, label_to_extract):
     extracted_image_array = []
@@ -129,24 +123,31 @@ def ctm(clauses, T, s, mask, x_train, y_train, x_test, y_test):
 
         # Predict
         pred_test = tm.predict(floaty_test_images)
-        pred_train = tm.predict(floaty_test_images)
+        pred_train = tm.predict(floaty_train_images)
 
-        
-        
         # Get some nice logging in terminal
         accuracy_test = 100*(pred_test == np.asarray(y_test)).mean()
         if max_acc < accuracy_test:
             max_acc = accuracy_test
         conf_matrix_test = confusion_matrix(np.asarray(y_test), pred_test)
         # print('sum predict:', sum(pred_test), 'sum validation:', sum(y_test))
-        print("#%d Accuracy on training data: %.2f%% (%.2fs), best accuracy on training data: %.2f%% " % (i+1, accuracy_test, stop-start, max))
+        print("#%d Accuracy on training data: %.2f%% (%.2fs), best accuracy on training data: %.2f%% " % (i+1, accuracy_test, stop-start, max_acc))
         print('Confusion matrix:')
         print(conf_matrix_test)
 
         # Save to logfile
+        print(np.asarray(y_test).shape, pred_test.shape, np.asarray(y_train).shape, pred_train.shape)
         log.add_epoch(np.asarray(y_test), pred_test, np.asarray(y_train), pred_train)
         log.save_log()
     print('done')
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--clauses', type=int, default=4000)
+parser.add_argument('-T', type=int, default=75)
+parser.add_argument('-s', type=float, default=10.0)
+parser.add_argument('--mask', type=int, default=10)
+parser.add_argument('--grayscale', type=bool, default=False)
+args = parser.parse_args()
 
 (x_train, y_train),(x_test, y_test) = generate_datasets(args.grayscale)
 
