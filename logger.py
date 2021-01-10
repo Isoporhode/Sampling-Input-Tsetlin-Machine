@@ -49,3 +49,6 @@ class Log_open():
 
     def get_epochs(self):
         return self.full_log.epochs
+    
+    def get_metadata(self):
+        return self.full_log.metadata
