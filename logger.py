@@ -31,7 +31,7 @@ class Logger ():
             json.dump({"metadata" : self.metadata, "epochs" : self.epochs}, f)
 
 class Log_open():
-    def __init__(self, log_file_name = 'logs/test.json'):
+    def __init__(self, log_file_name):
         self.filename = ''
         self.filename = log_file_name
         with open(log_file_name, 'rb') as f:
@@ -48,7 +48,7 @@ class Log_open():
         print("Mask:", metadata["mask"])
 
     def get_epochs(self):
-        return self.full_log.epochs
+        return self.full_log["epochs"]
     
     def get_metadata(self):
-        return self.full_log.metadata
+        return self.full_log["metadata"]
