@@ -141,7 +141,7 @@ def ctm(clauses, T, s, mask,image_array_train,label_array_train,image_array_vali
     print('done')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--clauses', type=int, default=40)
+parser.add_argument('--clauses', type=int, default=4000)
 parser.add_argument('-T', type=int, default=75)
 parser.add_argument('-s', type=float, default=10.0)
 parser.add_argument('--mask', type=int, default=10)
