@@ -22,8 +22,9 @@ class Logger ():
         self.log = []
         self.log_open = []
         self.now = datetime.now()
-    def add_epoch(self, y_true, y_pred):
-        self.frames.append([len(self.frames), time.time(), confusion_matrix(y_true, y_pred)])
+    def add_epoch(self, y_true_test, y_pred_test, y_true_train, y_pred_train):
+        self.frames.append([len(self.frames), time.time(), 
+            confusion_matrix(y_true_test, y_pred_test), confusion_matrix(y_true_train, y_pred_train)])
 
     def make_log(self):
         self.log = [self.metadata, self.frames]

@@ -32,13 +32,7 @@ cifar_labels= {
 }
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--clauses', type=int, default=4000)
-parser.add_argument('-T', type=int, default=75)
-parser.add_argument('-s', type=float, default=10.0)
-parser.add_argument('--mask', type=int, default=10)
-parser.add_argument('--grayscale', type=bool, default=False)
-args = parser.parse_args()
+
 
 def extract_images_from_label(image_array, label_array, label_to_extract):
     extracted_image_array = []
@@ -100,15 +94,16 @@ def generate_datasets(grayscale_flag):
 #
 '''
 
-def ctm(clauses, T, s, mask, x_train, y_train, x_val, y_val):
+def ctm(clauses, T, s, mask, x_train, y_train, x_test, y_test):
     # find max and min values for the train and validation data
     x_train_min = np.amin(x_train)
     x_train_max = np.amax(x_train)
-    x_val_min = np.amin(x_val)
-    x_val_max = np.amax(x_val)
-    print(x_train_min, x_train_max, x_val_min, x_val_max)
+    x_test_min = np.amin(x_test)
+    x_test_max = np.amax(x_test)
+    print(x_train_min, x_train_max, x_test_min, x_test_max)
     tm = MultiClassConvolutionalTsetlinMachine2D(clauses, T, s, (mask, mask))
     log = Logger("CIFAR_random_samling_test", x_train, "CTM", clauses, T, s, (mask, mask))
+    max_acc = 0
 
     print('predicting 400 epochs')
     for i in range(400):
@@ -116,24 +111,43 @@ def ctm(clauses, T, s, mask, x_train, y_train, x_val, y_val):
         start = time()
         # Generate matrix with size of the image array, with random values ranging from 0 to 255 
         random_train_matrix = np.random.randint(x_train_min, x_train_max, size=(x_train.shape))
-        random_test_matrix = np.random.randint(x_val_min, x_val_max, size=(x_val.shape))
-        # Returns 
+        random_test_matrix = np.random.randint(x_test_min, x_test_max, size=(x_test.shape))
+
+        # Sampeled images
         floaty_train_images = np.greater(random_train_matrix, x_train)
-        floaty_test_images = np.greater(random_test_matrix, x_val)
+        floaty_test_images = np.greater(random_test_matrix, x_test)
         
+        # Fit
         tm.fit(floaty_train_images, y_train, epochs=1, incremental=True)
         stop = time()
-        
-        pred = tm.predict(floaty_test_images)
-        conf_matrix = confusion_matrix(np.asarray(y_val), pred)
-        print('sum predict:', sum(pred), 'sum validation:', sum(y_val))
-        accuracy = 100*(pred == np.asarray(y_val)).mean()
-        print("#%d Accuracy: %.2f%% (%.2fs)" % (i+1, accuracy, stop-start))
+
+        # Predict
+        pred_test = tm.predict(floaty_test_images)
+        pred_train = tm.predict(floaty_train_images)
+
+        # Get some nice logging in terminal
+        accuracy_test = 100*(pred_test == np.asarray(y_test)).mean()
+        if max_acc < accuracy_test:
+            max_acc = accuracy_test
+        conf_matrix_test = confusion_matrix(np.asarray(y_test), pred_test)
+        # print('sum predict:', sum(pred_test), 'sum validation:', sum(y_test))
+        print("#%d Accuracy on training data: %.2f%% (%.2fs), best accuracy on training data: %.2f%% " % (i+1, accuracy_test, stop-start, max_acc))
         print('Confusion matrix:')
-        print(conf_matrix)
-        log.add_epoch(np.asarray(y_val), pred)
+        print(conf_matrix_test)
+
+        # Save to logfile
+        print(np.asarray(y_test).shape, pred_test.shape, np.asarray(y_train).shape, pred_train.shape)
+        log.add_epoch(np.asarray(y_test), pred_test, np.asarray(y_train), pred_train)
         log.save_log()
     print('done')
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--clauses', type=int, default=4000)
+parser.add_argument('-T', type=int, default=75)
+parser.add_argument('-s', type=float, default=10.0)
+parser.add_argument('--mask', type=int, default=10)
+parser.add_argument('--grayscale', type=bool, default=False)
+args = parser.parse_args()
 
 (x_train, y_train),(x_test, y_test) = generate_datasets(args.grayscale)
 

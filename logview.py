@@ -41,10 +41,13 @@ def read_log(log_name, mult_flag = True):
     return opened_log
 
 def conf_matrix_extract(log):
-    confusion_matrix_array = []
+    confusion_matrix_array_test = []
+    confusion_matrix_array_train = []
+
     for m in range(len(log[1])):
-        confusion_matrix_array.append(log[1][m][2])
-    return confusion_matrix_array
+        confusion_matrix_array_test.append(log[1][m][2])
+        confusion_matrix_array_train.append(log[1][m][3])
+    return confusion_matrix_array_test, confusion_matrix_array_train
 
 def conf_matrix_split(conf_matrix):
     TN = conf_matrix[0][0]
@@ -115,10 +118,16 @@ args = parser.parse_args()
 if args.log_name:
     log = read_log(args.log_name, False)
     print(log[0])
-    cm_array = conf_matrix_extract(log)
-    (MCC_a, accuracy_a, f1_a) = calculate_scores(cm_array)
-    plt.plot(MCC_a, label='MCC')
-    plt.plot(accuracy_a, label='acc')
+    print(log[1][0][2])
+    print(log[1][0])
+    (cm_array_test, cm_array_train) = conf_matrix_extract(log)
+    (MCC_a, accuracy_a_test, f1_a) = calculate_scores(cm_array_test)
+    (MCC_a, accuracy_a_train, f1_a) = calculate_scores(cm_array_train)
+
+    # plt.plot(MCC_a, label='MCC')
+    plt.plot(accuracy_a_test, label='acc_test')
+    plt.plot(accuracy_a_train, label='acc_train')
+
     #plt.plot(f1_a, label='f1 score')
     plt.xlabel('epoch')
     plt.legend()
@@ -150,11 +159,6 @@ else:
         (MCC, acc, f1) = calculate_scores(cm_array)
         av_acc_100 = average_last_100(acc)
         av_mcc_100 = average_last_100(MCC)
-        #re_placement = re.search("\([0-9]-[0-9]", log[0][5:])
-        #placement = re_placement.group(0)
-        #pair_matrix_acc[int(placement[1])][int(placement[-1])] = av_acc_100
-        #pair_matrix_acc_top[int(placement[1])][int(placement[-1])] = top_20(acc)[-1]
-        #pair_matrix_test[int(placement[1])][int(placement[-1])] = placement[3]
         print(log[0][5:],log[1][0])
         print("Last 100 acc:", av_acc_100, "MCC:", av_mcc_100)
         print("top 20 acc:", top_20(acc))
