@@ -56,6 +56,7 @@ def shuffle_dataset(image_array, label_array):
     return (image_array_rand,label_array_rand) 
 
 def rgbTranspose(image_array):
+    print(image_array[1].shape)
     return np.asarray(image_array).reshape((len(image_array), 3, 32, 32)).transpose(0,2,3,1)
 
 def image_array_to_grayscale(image_array):
@@ -81,8 +82,10 @@ def generate_datasets(grayscale_flag):
         image_array_validation_grayscale = (image_array_to_grayscale(image_array_validation_extracted))
         return (image_array_train_grayscale,label_array_train_shuffled), (image_array_validation_grayscale,label_array_validation_extracted)
     else:
-        image_array_train_reshaped = rgbTranspose(image_array_train_shuffled)
-        image_array_validation_reshaped = rgbTranspose(image_array_validation_extracted)
+        image_array_train_reshaped = np.asarray(image_array_train_shuffled)
+        image_array_validation_reshaped = np.asarray(image_array_validation_extracted)
+#        image_array_train_reshaped = rgbTranspose(image_array_train_shuffled)
+#        image_array_validation_reshaped = rgbTranspose(image_array_validation_extracted)
         return (image_array_train_reshaped,label_array_train_shuffled), (image_array_validation_reshaped,label_array_validation_extracted)
 
 '''
@@ -93,7 +96,7 @@ def generate_datasets(grayscale_flag):
 #
 '''
 
-def ctm(clauses, T, s, mask,image_array_train,label_array_train,image_array_validation,label_array_validation):
+def ctm(clauses, T, s, mask,image_array_train,label_array_train,image_array_validation,label_array_validation,epochs):
     # find max and min values for the train and validation data
     image_array_train_min = np.amin(image_array_train)
     image_array_train_max = np.amax(image_array_train)
@@ -104,8 +107,8 @@ def ctm(clauses, T, s, mask,image_array_train,label_array_train,image_array_vali
     log_creator = Logger("CIFAR_random_samling_validation",  "CTM", clauses, T, s, (mask, mask))
     max_acc = 0
 
-    print('predicting 400 epochs')
-    for i in range(400):
+    print('predicting {} epochs'.format(epochs))
+    for i in range(epochs):
         
         start = time()
         # Generate matrix with size of the image array, with random values ranging from 0 to 255 
@@ -129,26 +132,27 @@ def ctm(clauses, T, s, mask,image_array_train,label_array_train,image_array_vali
         if max_acc < accuracy_validation:
             max_acc = accuracy_validation
         conf_matrix_validation = confusion_matrix(np.asarray(label_array_validation), pred_validation)
-        # print('sum predict:', sum(pred_validation), 'sum validation:', sum(label_array_validation))
+        print('sum predict:', sum(pred_validation), 'sum validation:', sum(label_array_validation))
         print("#%d Accuracy on training data: %.2f%% (%.2fs), best accuracy on training data: %.2f%% " % (i+1, accuracy_validation, stop-start, max_acc))
         print('Confusion matrix:')
         print(conf_matrix_validation)
 
         # Save to logfile
-        print(np.asarray(label_array_validation).shape, pred_validation.shape, np.asarray(label_array_train).shape, pred_train.shape)
+        #print(np.asarray(label_array_validation).shape, pred_validation.shape, np.asarray(label_array_train).shape, pred_train.shape)
         log_creator.add_epoch(np.asarray(label_array_validation), pred_validation, np.asarray(label_array_train), pred_train)
         log_creator.save_log()
     print('done')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--clauses', type=int, default=4000)
-parser.add_argument('-T', type=int, default=75)
-parser.add_argument('-s', type=float, default=10.0)
-parser.add_argument('--mask', type=int, default=10)
-parser.add_argument('--grayscale', type=bool, default=False)
+parser.add_argument('--clauses', type=int, default=4000, help="Amount of clauses (int)")
+parser.add_argument('-T', type=int, default=75, help="T variable (int)")
+parser.add_argument('-s', type=float, default=10.0, help="S variable (float)")
+parser.add_argument('--mask', type=int, default=10, help="int defining mask size")
+parser.add_argument('--grayscale', type=bool, default=False, help="Images set to RGB or Grayscale (Boolean)")
+parser.add_argument('--epochs', type=int, default=400, help="Amount of epochs to run (int)")
 args = parser.parse_args()
 
 (image_array_train,label_array_train),(image_array_validation,label_array_validation) = generate_datasets(args.grayscale)
 
-ctm(args.clauses, args.T, args.s, args.mask,image_array_train,label_array_train,image_array_validation,label_array_validation)
+ctm(args.clauses, args.T, args.s, args.mask,image_array_train,label_array_train,image_array_validation,label_array_validation, args.epochs)
 
