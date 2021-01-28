@@ -17,23 +17,6 @@ from logger import Logger
 #
 '''
 
-global cifar_labels
-cifar_labels= {
-    0: 'airplane',
-    1: 'automobile',
-    2: 'bird',
-    3: 'cat',
-    4: 'deer',
-    5: 'dog',
-    6: 'frog',
-    7: 'horse',
-    8: 'ship',
-    9: 'truck'
-}
-
-
-
-
 def extract_images_from_label(image_array, label_array, label_to_extract):
     extracted_image_array = []
     extracted_label_array = []
@@ -55,10 +38,6 @@ def shuffle_dataset(image_array, label_array):
        label_array_rand.append(pairs[i][1])
     return (image_array_rand,label_array_rand) 
 
-def rgbTranspose(image_array):
-    print(image_array[1].shape)
-    return np.asarray(image_array).reshape((len(image_array), 3, 32, 32)).transpose(0,2,3,1)
-
 def image_array_to_grayscale(image_array):
     grayscale_image_array = []
     for i in range(len(image_array)):
@@ -68,6 +47,7 @@ def image_array_to_grayscale(image_array):
     return np.asarray(grayscale_image_array, np.uint8)
 
 def generate_datasets(grayscale_flag):
+    print("Loading and generating the dataset")
     # Load in datasets
     (image_array_train_all,label_array_train_all), (image_array_validation_all,label_array_validation_all) = cifar10.load_data()
 
@@ -84,8 +64,6 @@ def generate_datasets(grayscale_flag):
     else:
         image_array_train_reshaped = np.asarray(image_array_train_shuffled)
         image_array_validation_reshaped = np.asarray(image_array_validation_extracted)
-#        image_array_train_reshaped = rgbTranspose(image_array_train_shuffled)
-#        image_array_validation_reshaped = rgbTranspose(image_array_validation_extracted)
         return (image_array_train_reshaped,label_array_train_shuffled), (image_array_validation_reshaped,label_array_validation_extracted)
 
 '''
@@ -107,7 +85,9 @@ def ctm(clauses, T, s, mask,image_array_train,label_array_train,image_array_vali
     log_creator = Logger("CIFAR_random_samling_validation",  "CTM", clauses, T, s, (mask, mask))
     max_acc = 0
 
-    print('predicting {} epochs'.format(epochs))
+    print(f"Running CTM with random sampling for {epochs} epochs, with the following parameters:")
+    print(f"Clauses: {clauses}, s: {s}, T: {T}, mask: {mask} x {mask}")
+
     for i in range(epochs):
         
         start = time()
@@ -138,7 +118,6 @@ def ctm(clauses, T, s, mask,image_array_train,label_array_train,image_array_vali
         print(conf_matrix_validation)
 
         # Save to logfile
-        #print(np.asarray(label_array_validation).shape, pred_validation.shape, np.asarray(label_array_train).shape, pred_train.shape)
         log_creator.add_epoch(np.asarray(label_array_validation), pred_validation, np.asarray(label_array_train), pred_train)
         log_creator.save_log()
     print('done')
@@ -151,6 +130,8 @@ parser.add_argument('--mask', type=int, default=10, help="int defining mask size
 parser.add_argument('--grayscale', type=bool, default=False, help="Images set to RGB or Grayscale (Boolean)")
 parser.add_argument('--epochs', type=int, default=400, help="Amount of epochs to run (int)")
 args = parser.parse_args()
+
+
 
 (image_array_train,label_array_train),(image_array_validation,label_array_validation) = generate_datasets(args.grayscale)
 
