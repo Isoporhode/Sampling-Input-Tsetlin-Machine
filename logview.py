@@ -14,19 +14,6 @@ import re
 import pandas as pd
 from statistics import mean
 
-cifar10_labels = [
-"airplane",
-"automobile",
-"bird",
-"cat",
-"deer",
-"dog",
-"frog",
-"horse",
-"ship",
-"truck"
-]
-
 def read_log_names(search = '*.json'):
     return glob.glob(os.path.join('logs',search))
 
@@ -108,15 +95,13 @@ args = parser.parse_args()
 if args.log_name:
     log_opener = Log_open(args.log_name)
     log_opener.list_metadata()
+    
     (validation_confusion_matrix_array_test, validation_confusion_matrix_array_train) = conf_matrix_extract(log_opener.get_epochs())
     (MCC_a, accuracy_a_test, f1_a) = calculate_scores(validation_confusion_matrix_array_test)
     (MCC_a, accuracy_a_train, f1_a) = calculate_scores(validation_confusion_matrix_array_train)
-
-    # plt.plot(MCC_a, label='MCC')
+    
     plt.plot(accuracy_a_test, label='acc_test')
     plt.plot(accuracy_a_train, label='acc_train')
-
-    #plt.plot(f1_a, label='f1 score')
     plt.xlabel('epoch')
     plt.legend()
     plt.show()
@@ -135,7 +120,6 @@ else:
         if len(validation_confusion_matrix_array) < 5:
             print(log[0][5:], "has less than 100 epochs!")
             continue
-        # print(validation_confusion_matrix_array)
         (MCC, acc, f1) = calculate_scores(validation_confusion_matrix_array)
         acc_arr.append(average_last_100(acc))
         logs_without_trash_logs.append(log)
@@ -154,7 +138,22 @@ else:
         print("top 20 acc:", top_20(acc))
         print()
 
+
     # Pair matrix stuff, needs 45 log-pairs to work, old code:
+
+    # cifar10_labels = [
+    # "airplane",
+    # "automobile",
+    # "bird",
+    # "cat",
+    # "deer",
+    # "dog",
+    # "frog",
+    # "horse",
+    # "ship",
+    # "truck"
+    # ]
+
     # avg_pma = []
     # for x_pair in pair_matrix_acc:
     #     for y_pair in x_pair:
@@ -164,11 +163,7 @@ else:
     # print("Accuracy over the last 100 epochs for pairs:")
     # print (pd.DataFrame(pair_matrix_acc.T*100, index=cifar10_labels,
     #                     columns=cifar10_labels))
-    # average_dataframe = pd.DataFrame(pair_matrix_acc.T*100, index=cifar10_labels,
-    #                     columns=cifar10_labels)
-    # if args.produce_tex:
-    #     with open('average.tex', 'w') as tf:
-    #         tf.write(average_dataframe.to_latex(float_format=lambda x: '%10.2f' % x))
+
     # print()
     # avg_pmat = []
     # for x_pair in pair_matrix_acc_top:
@@ -180,11 +175,5 @@ else:
     # print("Top epoch accuracy for each pair:")
     # print (pd.DataFrame(pair_matrix_acc_top.T*100, index=cifar10_labels,
     #                     columns=cifar10_labels))
-
-    # top_dataframe = pd.DataFrame(pair_matrix_acc_top.T*100, index=cifar10_labels,
-    #                     columns=cifar10_labels)
-    # if args.produce_tex:
-    #     with open('top.tex', 'w') as tf:
-    #         tf.write(top_dataframe.to_latex(float_format=lambda x: '%10.2f' % x))
 
 
